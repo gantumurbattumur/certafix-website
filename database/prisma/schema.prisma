@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────
+
+enum PriceType {
+  FIXED
+  HOURLY
+  STARTING_AT
+  RANGE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum QuoteStatus {
+  PENDING
+  QUOTED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+// ─── Service Catalog ────────────────────────────────────
+
+model ServiceCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  imageUrl    String?  @map("image_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  services Service[]
+
+  @@map("service_categories")
+}
+
+model Service {
+  id               String   @id @default(uuid()) @db.Uuid
+  categoryId       String   @map("category_id") @db.Uuid
+  name             String
+  slug             String   @unique
+  description      String
+  shortDescription String?  @map("short_description")
+  imageUrl         String?  @map("image_url")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id])
+  prices   ServicePrice[]
+
+  bookingItems BookingItem[]
+  quoteItems   QuoteItem[]
+
+  @@map("services")
+}
+
+model ServicePrice {
+  id          String    @id @default(uuid()) @db.Uuid
+  serviceId   String    @map("service_id") @db.Uuid
+  name        String
+  description String?
+  priceType   PriceType @map("price_type")
+  price       Decimal   @db.Decimal(10, 2)
+  priceMax    Decimal?  @map("price_max") @db.Decimal(10, 2)
+  unit        String?
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  service      Service       @relation(fields: [serviceId], references: [id])
+  bookingItems BookingItem[]
+  quoteItems   QuoteItem[]
+
+  @@map("service_prices")
+}
+
+// ─── Bookings ───────────────────────────────────────────
+
+model Booking {
+  id                String        @id @default(uuid()) @db.Uuid
+  customerName      String        @map("customer_name")
+  customerEmail     String        @map("customer_email")
+  customerPhone     String        @map("customer_phone")
+  address           String
+  city              String
+  zipCode           String        @map("zip_code")
+  preferredDate     DateTime      @map("preferred_date")
+  preferredTimeSlot String        @map("preferred_time_slot")
+  notes             String?
+  status            BookingStatus @default(PENDING)
+  totalEstimate     Decimal?      @map("total_estimate") @db.Decimal(10, 2)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  items   BookingItem[]
+  payment Payment?
+
+  @@map("bookings")
+}
+
+model BookingItem {
+  id             String  @id @default(uuid()) @db.Uuid
+  bookingId      String  @map("booking_id") @db.Uuid
+  serviceId      String  @map("service_id") @db.Uuid
+  servicePriceId String  @map("service_price_id") @db.Uuid
+  quantity       Int     @default(1)
+  unitPrice      Decimal @map("unit_price") @db.Decimal(10, 2)
+  subtotal       Decimal @db.Decimal(10, 2)
+
+  booking      Booking      @relation(fields: [bookingId], references: [id])
+  service      Service      @relation(fields: [serviceId], references: [id])
+  servicePrice ServicePrice @relation(fields: [servicePriceId], references: [id])
+
+  @@map("booking_items")
+}
+
+// ─── Quote Requests ─────────────────────────────────────
+
+model QuoteRequest {
+  id            String      @id @default(uuid()) @db.Uuid
+  customerName  String      @map("customer_name")
+  customerEmail String      @map("customer_email")
+  customerPhone String      @map("customer_phone")
+  address       String
+  city          String
+  zipCode       String      @map("zip_code")
+  description   String
+  status        QuoteStatus @default(PENDING)
+  adminNotes    String?     @map("admin_notes")
+  quotedAmount  Decimal?    @map("quoted_amount") @db.Decimal(10, 2)
+  quotedAt      DateTime?   @map("quoted_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  items QuoteItem[]
+
+  @@map("quote_requests")
+}
+
+model QuoteItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  quoteId        String   @map("quote_id") @db.Uuid
+  serviceId      String?  @map("service_id") @db.Uuid
+  servicePriceId String?  @map("service_price_id") @db.Uuid
+  description    String
+  estimatedPrice Decimal? @map("estimated_price") @db.Decimal(10, 2)
+
+  quote        QuoteRequest  @relation(fields: [quoteId], references: [id])
+  service      Service?      @relation(fields: [serviceId], references: [id])
+  servicePrice ServicePrice? @relation(fields: [servicePriceId], references: [id])
+
+  @@map("quote_items")
+}
+
+// ─── Payments ───────────────────────────────────────────
+
+model Payment {
+  id                    String        @id @default(uuid()) @db.Uuid
+  bookingId             String        @unique @map("booking_id") @db.Uuid
+  stripePaymentIntentId String        @unique @map("stripe_payment_intent_id")
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("usd")
+  status                PaymentStatus @default(PENDING)
+  paidAt                DateTime?     @map("paid_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
