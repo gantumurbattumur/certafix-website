@@ -4,14 +4,14 @@ Full-stack handyman services platform with service catalog, online booking, quot
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Database** | Supabase (PostgreSQL) + Prisma (schema/migrations) |
-| **Backend** | Python FastAPI + SQLModel (async) |
-| **User Website** | Next.js 15 (App Router) + Tailwind CSS |
-| **Admin Portal** | Next.js 15 (App Router) + Tailwind CSS |
-| **Payments** | Stripe |
-| **Auth** | JWT (single admin) |
+| Layer            | Technology                                         |
+| ---------------- | -------------------------------------------------- |
+| **Database**     | Supabase (PostgreSQL) + Prisma (schema/migrations) |
+| **Backend**      | Python FastAPI + SQLModel (async)                  |
+| **User Website** | Next.js 15 (App Router) + Tailwind CSS             |
+| **Admin Portal** | Next.js 15 (App Router) + Tailwind CSS             |
+| **Payments**     | Stripe                                             |
+| **Auth**         | JWT (single admin)                                 |
 
 ## Project Structure
 

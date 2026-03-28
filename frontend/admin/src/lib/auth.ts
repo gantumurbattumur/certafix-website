@@ -1,21 +1,21 @@
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("admin_token");
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("admin_token");
 }
 
 export function setToken(token: string) {
-  localStorage.setItem("admin_token", token);
+    localStorage.setItem("admin_token", token);
 }
 
 export function removeToken() {
-  localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_token");
 }
 
 export function isAuthenticated(): boolean {
-  return !!getToken();
+    return !!getToken();
 }
 
 export function logout() {
-  removeToken();
-  window.location.href = "/login";
+    removeToken();
+    window.location.href = "/login";
 }
