@@ -30,14 +30,17 @@ async def list_categories(
 ):
     result = await db.exec(select(ServiceCategory).order_by(ServiceCategory.sort_order))
     categories = result.all()
+    out = []
     for cat in categories:
         svc_result = await db.exec(select(Service).where(Service.category_id == cat.id))
         services = svc_result.all()
+        service_list = []
         for svc in services:
             p_result = await db.exec(select(ServicePrice).where(ServicePrice.service_id == svc.id))
-            svc.prices = p_result.all()
-        cat.services = services
-    return categories
+            prices = list(p_result.all())
+            service_list.append(ServiceOut.model_validate(svc, update={"prices": prices}))
+        out.append(ServiceCategoryOut.model_validate(cat, update={"services": service_list}))
+    return out
 
 
 @router.post("/categories", response_model=ServiceCategoryOut, status_code=status.HTTP_201_CREATED)
@@ -50,8 +53,7 @@ async def create_category(
     db.add(category)
     await db.commit()
     await db.refresh(category)
-    category.services = []
-    return category
+    return ServiceCategoryOut.model_validate(category, update={"services": []})
 
 
 @router.put("/categories/{category_id}", response_model=ServiceCategoryOut)
@@ -70,8 +72,13 @@ async def update_category(
     await db.commit()
     await db.refresh(category)
     svc_result = await db.exec(select(Service).where(Service.category_id == category.id))
-    category.services = svc_result.all()
-    return category
+    services = svc_result.all()
+    service_list = []
+    for svc in services:
+        p_result = await db.exec(select(ServicePrice).where(ServicePrice.service_id == svc.id))
+        prices = list(p_result.all())
+        service_list.append(ServiceOut.model_validate(svc, update={"prices": prices}))
+    return ServiceCategoryOut.model_validate(category, update={"services": service_list})
 
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -100,8 +107,7 @@ async def create_service(
     db.add(service)
     await db.commit()
     await db.refresh(service)
-    service.prices = []
-    return service
+    return ServiceOut.model_validate(service, update={"prices": []})
 
 
 @router.put("/services/{service_id}", response_model=ServiceOut)
@@ -120,8 +126,8 @@ async def update_service(
     await db.commit()
     await db.refresh(service)
     p_result = await db.exec(select(ServicePrice).where(ServicePrice.service_id == service.id))
-    service.prices = p_result.all()
-    return service
+    prices = list(p_result.all())
+    return ServiceOut.model_validate(service, update={"prices": prices})
 
 
 @router.delete("/services/{service_id}", status_code=status.HTTP_204_NO_CONTENT)

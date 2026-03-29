@@ -42,8 +42,8 @@ async def create_quote(body: QuoteCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(quote)
     items_result = await db.exec(select(QuoteItem).where(QuoteItem.quote_id == quote.id))
-    quote.items = items_result.all()
-    return quote
+    items = list(items_result.all())
+    return QuoteOut.model_validate(quote, update={"items": items})
 
 
 # ── Admin ────────────────────────────────────────────────
@@ -71,8 +71,8 @@ async def get_quote(
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     items_result = await db.exec(select(QuoteItem).where(QuoteItem.quote_id == quote.id))
-    quote.items = items_result.all()
-    return quote
+    items = list(items_result.all())
+    return QuoteOut.model_validate(quote, update={"items": items})
 
 
 @router.patch("/admin/quotes/{quote_id}", response_model=QuoteOut)
@@ -98,5 +98,5 @@ async def respond_to_quote(
     await db.commit()
     await db.refresh(quote)
     items_result = await db.exec(select(QuoteItem).where(QuoteItem.quote_id == quote.id))
-    quote.items = items_result.all()
-    return quote
+    items = list(items_result.all())
+    return QuoteOut.model_validate(quote, update={"items": items})

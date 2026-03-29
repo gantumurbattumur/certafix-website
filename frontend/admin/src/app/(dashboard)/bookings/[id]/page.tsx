@@ -103,6 +103,7 @@ export default function BookingDetailPage() {
                                     <thead>
                                         <tr className="border-b text-left text-gray-500">
                                             <th className="pb-2">Service</th>
+                                            <th className="pb-2">Option</th>
                                             <th className="pb-2">Qty</th>
                                             <th className="pb-2 text-right">Unit Price</th>
                                             <th className="pb-2 text-right">Subtotal</th>
@@ -111,7 +112,8 @@ export default function BookingDetailPage() {
                                     <tbody className="divide-y">
                                         {booking.items.map((item) => (
                                             <tr key={item.id}>
-                                                <td className="py-2">{item.service_price_id}</td>
+                                                <td className="py-2">{item.service_name ?? "—"}</td>
+                                                <td className="py-2 text-gray-500">{item.price_name ?? "—"}</td>
                                                 <td className="py-2">{item.quantity}</td>
                                                 <td className="py-2 text-right">
                                                     ${Number(item.unit_price).toFixed(2)}
@@ -124,7 +126,7 @@ export default function BookingDetailPage() {
                                     </tbody>
                                     <tfoot>
                                         <tr className="border-t font-semibold">
-                                            <td colSpan={3} className="py-2 text-right">
+                                            <td colSpan={4} className="py-2 text-right">
                                                 Total Estimate
                                             </td>
                                             <td className="py-2 text-right">

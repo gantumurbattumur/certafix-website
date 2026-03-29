@@ -7,15 +7,39 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.api.deps import get_current_admin, get_db
 from app.models.booking import Booking, BookingItem, BookingStatus
-from app.models.service import ServicePrice
+from app.models.service import Service, ServicePrice
 from app.schemas.booking import (
     BookingCreate,
+    BookingItemOut,
     BookingListOut,
     BookingOut,
     BookingStatusUpdate,
 )
 
 router = APIRouter(tags=["Bookings"])
+
+
+async def _build_items_out(booking_id: UUID, db: AsyncSession) -> list[BookingItemOut]:
+    """Load booking items and enrich them with service/price names."""
+    items_result = await db.exec(select(BookingItem).where(BookingItem.booking_id == booking_id))
+    items = list(items_result.all())
+    enriched: list[BookingItemOut] = []
+    for item in items:
+        price = await db.get(ServicePrice, item.service_price_id)
+        service = await db.get(Service, item.service_id)
+        enriched.append(
+            BookingItemOut(
+                id=item.id,
+                service_id=item.service_id,
+                service_price_id=item.service_price_id,
+                service_name=service.name if service else None,
+                price_name=price.name if price else None,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                subtotal=item.subtotal,
+            )
+        )
+    return enriched
 
 
 # ── Public ───────────────────────────────────────────────
@@ -65,9 +89,8 @@ async def create_booking(body: BookingCreate, db: AsyncSession = Depends(get_db)
     await db.commit()
     await db.refresh(booking)
 
-    items_result = await db.exec(select(BookingItem).where(BookingItem.booking_id == booking.id))
-    booking.items = items_result.all()
-    return booking
+    items = await _build_items_out(booking.id, db)
+    return BookingOut.model_validate(booking, update={"items": items})
 
 
 # ── Admin ────────────────────────────────────────────────
@@ -97,9 +120,8 @@ async def get_booking(
     booking = await db.get(Booking, booking_id)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    items_result = await db.exec(select(BookingItem).where(BookingItem.booking_id == booking.id))
-    booking.items = items_result.all()
-    return booking
+    items = await _build_items_out(booking_id, db)
+    return BookingOut.model_validate(booking, update={"items": items})
 
 
 @router.patch("/admin/bookings/{booking_id}", response_model=BookingOut)
@@ -116,6 +138,5 @@ async def update_booking_status(
     db.add(booking)
     await db.commit()
     await db.refresh(booking)
-    items_result = await db.exec(select(BookingItem).where(BookingItem.booking_id == booking.id))
-    booking.items = items_result.all()
-    return booking
+    items = await _build_items_out(booking_id, db)
+    return BookingOut.model_validate(booking, update={"items": items})

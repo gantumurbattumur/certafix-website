@@ -32,15 +32,6 @@ const serviceCategories = [
         ],
     },
     {
-        name: "Bathroom Remodeling",
-        slug: "bathroom",
-        description: "Full and partial bathroom renovations, tile work, vanity installation.",
-        services: [
-            { name: "Full Bathroom Remodel", slug: "full-bathroom-remodel", shortDescription: "Transform your bathroom from start to finish." },
-            { name: "Tile Installation", slug: "tile-installation", shortDescription: "Expert tile work for lasting results." },
-        ],
-    },
-    {
         name: "General Maintenance",
         slug: "general-maintenance",
         description: "Drywall repair, painting, door/window installation, and general handyman tasks.",
@@ -49,14 +40,24 @@ const serviceCategories = [
             { name: "Interior Painting", slug: "interior-painting", shortDescription: "Fresh paint, professional results." },
         ],
     },
+    {
+        name: "Bathroom Remodeling",
+        slug: "bathroom",
+        description: "Full and partial bathroom renovations, tile work, vanity installation.",
+        services: [
+            { name: "Full Bathroom Remodel", slug: "full-bathroom-remodel", shortDescription: "Transform your bathroom from start to finish." },
+            { name: "Tile Installation", slug: "tile-installation", shortDescription: "Expert tile work for lasting results." },
+        ],
+    },
+
 ];
 
 export default function ServicesPage() {
     return (
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-900">Our Services</h1>
-                <p className="mt-4 text-lg text-gray-600">
+                <h1 className="text-4xl font-serif font-bold text-charcoal">Our Services</h1>
+                <p className="mt-4 text-lg text-charcoal-light">
                     Browse our full range of professional handyman services
                 </p>
             </div>
@@ -64,9 +65,9 @@ export default function ServicesPage() {
             <div className="mt-16 space-y-20">
                 {serviceCategories.map((category) => (
                     <section key={category.slug} id={category.slug}>
-                        <div className="border-b border-gray-200 pb-4">
-                            <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>
-                            <p className="mt-1 text-gray-600">{category.description}</p>
+                        <div className="border-b-2 border-forest/30 pb-4">
+                            <h2 className="text-2xl font-serif font-bold text-charcoal">{category.name}</h2>
+                            <p className="mt-1 text-charcoal-light">{category.description}</p>
                         </div>
 
                         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,13 +75,13 @@ export default function ServicesPage() {
                                 <Link
                                     key={service.slug}
                                     href={`/services/${service.slug}`}
-                                    className="group rounded-lg border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition"
+                                    className="group rounded-xl border-2 border-gray-200 p-6 hover:border-forest hover:shadow-md transition bg-white"
                                 >
-                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                                    <h3 className="text-lg font-serif font-semibold text-charcoal group-hover:text-forest-dark transition-colors">
                                         {service.name}
                                     </h3>
-                                    <p className="mt-2 text-sm text-gray-600">{service.shortDescription}</p>
-                                    <span className="mt-4 inline-block text-sm font-medium text-blue-700">
+                                    <p className="mt-2 text-sm text-charcoal-light">{service.shortDescription}</p>
+                                    <span className="mt-4 inline-block text-sm font-semibold text-forest">
                                         View Pricing →
                                     </span>
                                 </Link>

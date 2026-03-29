@@ -56,6 +56,9 @@ export interface BookingListItem {
 export interface BookingItem {
     id: string;
     service_price_id: string;
+    service_id: string;
+    service_name: string | null;
+    price_name: string | null;
     quantity: number;
     unit_price: number;
     subtotal: number;

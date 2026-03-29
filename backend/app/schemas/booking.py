@@ -38,6 +38,8 @@ class BookingItemOut(BaseModel):
     id: UUID
     service_id: UUID
     service_price_id: UUID
+    service_name: str | None = None
+    price_name: str | None = None
     quantity: int
     unit_price: Decimal
     subtotal: Decimal
@@ -69,6 +71,7 @@ class BookingListOut(BaseModel):
     id: UUID
     customer_name: str
     customer_email: str
+    customer_phone: str
     preferred_date: datetime
     preferred_time_slot: str
     status: BookingStatus

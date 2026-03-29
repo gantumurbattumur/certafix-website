@@ -33,11 +33,10 @@ async def list_services(db: AsyncSession = Depends(get_db)):
                 select(ServicePrice)
                 .where(ServicePrice.service_id == svc.id, ServicePrice.is_active == True)
             )
-            svc.prices = prices_result.all()
-            service_list.append(svc)
+            prices = list(prices_result.all())
+            service_list.append(ServiceOut.model_validate(svc, update={"prices": prices}))
 
-        cat.services = service_list
-        out.append(cat)
+        out.append(ServiceCategoryOut.model_validate(cat, update={"services": service_list}))
     return out
 
 
@@ -55,5 +54,5 @@ async def get_service_by_slug(slug: str, db: AsyncSession = Depends(get_db)):
         select(ServicePrice)
         .where(ServicePrice.service_id == service.id, ServicePrice.is_active == True)
     )
-    service.prices = prices_result.all()
-    return service
+    prices = list(prices_result.all())
+    return ServiceOut.model_validate(service, update={"prices": prices})
